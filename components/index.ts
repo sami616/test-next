@@ -1,2 +1,6 @@
 export * from './PageLayout'
 export * from './NotFound'
+export * from './HomeTemplate'
+export * from './BlogTemplate'
+export * from './DefaultTemplate'
+export * from './PageTemplates'

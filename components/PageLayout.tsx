@@ -1,18 +1,18 @@
 import Head from 'next/head'
-import type { PagePropData } from '@pages/[[...uri]]'
+import type { PageStaticProps } from '@pages/[[...uri]]'
+import { PageTemplates } from '@components'
 
-export interface PageLayoutProps extends Pick<Required<PagePropData>, 'page'> {
-  children: React.ReactNode
-}
+export interface PageLayoutProps
+  extends Pick<Required<PageStaticProps>, 'page'> {}
 
-export function PageLayout({ children, page }: PageLayoutProps) {
+export function PageLayout({ page }: PageLayoutProps) {
   return (
     <>
       <Head>
         <title>{page.title}</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
-      {children}
+      <PageTemplates page={page} />
     </>
   )
 }
