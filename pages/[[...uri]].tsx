@@ -1,84 +1,141 @@
-import { PageLayout, NotFound } from '@components'
+import type { GetStaticPaths, GetStaticProps } from 'next'
+import { Head, Header, Footer } from '@components'
+import { PostTypes } from '@post-types'
 import { fetchAPI, setURI } from '@utils'
-import { useRouter } from 'next/router'
-import { NextPage, GetStaticPaths, GetStaticProps } from 'next'
+import type { GetDataQuery, GetDataQueryVariables, GetPathsQuery } from '@api-types'
 
-export interface PageProps extends PageStaticProps {}
+//x//////////////////////////////////////////////////
+// Node
+//x//////////////////////////////////////////////////
 
-export type Templates = 'Home' | 'Default' | 'Blog'
+export type RootNode = NonNullable<GetDataQuery['node']>
 
-export interface PageStaticProps {
-  page?: {
-    title: string
-    uri: string
-    template: {
-      templateName: Templates
-    }
-  }
+export type Typenames = Extract<RootNode['__typename'], 'Post' | 'Page' | 'Category' | 'Tag'>
+
+export interface NodeProps extends GetDataQuery {
+  node: RootNode & { __typename: Typenames }
 }
 
-export interface PageStaticPaths {
-  pages: {
-    edges: { node: { uri: string } }[]
-  }
+export default function Node({ node, ...props }: NodeProps) {
+  return (
+    <>
+      <Head node={node} {...props} />
+      <Header node={node} {...props} />
+      <PostTypes node={node} {...props} />
+      <Footer />
+    </>
+  )
 }
 
-const Page: NextPage<PageProps> = ({ page }) => {
-  const router = useRouter()
-  if (router.isFallback) return <p>Loading...</p>
-  if (!page) return <NotFound />
-  return <PageLayout page={page} />
-}
-
-export default Page
-
-export const getStaticProps: GetStaticProps<PageStaticProps> = async context => {
+export const getStaticProps: GetStaticProps<
+  GetDataQuery,
+  GetDataQueryVariables
+> = async context => {
   const uri = setURI(context.params?.uri)
 
   try {
-    const { page } = await fetchAPI<PageStaticProps>(
-      `
-    query GetPage($uri: ID!) {
-      page(idType: URI, id: $uri) {
-        title
-        uri
-        template {
-          templateName
+    const data = await fetchAPI<GetDataQuery, GetDataQueryVariables>(
+      /* GraphQL */ `
+        query GetData($uri: String!) {
+          node: nodeByUri(uri: $uri) {
+            __typename
+            id
+            uri
+            ... on Post {
+              title
+              excerpt
+              content
+            }
+            ... on Page {
+              title
+              content
+              template {
+                __typename
+              }
+            }
+            ... on Tag {
+              name
+              posts {
+                edges {
+                  node {
+                    title
+                    uri
+                  }
+                }
+              }
+            }
+            ... on Category {
+              name
+              posts {
+                edges {
+                  node {
+                    title
+                    uri
+                  }
+                }
+              }
+            }
+          }
+
+          menu(idType: NAME, id: "FL1 Digital") {
+            menuItems {
+              edges {
+                node {
+                  id
+                  label
+                  path
+                }
+              }
+            }
+          }
+
+          posts(first: 10) {
+            edges {
+              node {
+                title
+                uri
+              }
+            }
+          }
         }
-      }
-    }    
-    `,
+      `,
       { variables: { uri } }
     )
 
+    const typenames: Typenames[] = ['Post', 'Page', 'Category', 'Tag']
+
     return {
-      props: { page },
+      props: data,
       revalidate: 20,
+      notFound:
+        // @ts-ignore
+        !data.node || !typenames.includes(data.node.__typename) ? true : false,
     }
-  } catch (e) {
+  } catch {
     return {
       props: {},
       revalidate: 20,
+      notFound: true,
     }
   }
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const { pages } = await fetchAPI<PageStaticPaths>(`
-    query GetPages {
-        pages(first: 100) {
-            edges {
-              node {
-                uri
-              }
-            }
+  const { contentNodes } = await fetchAPI<GetPathsQuery>(/* GraphQL */ `
+    query GetPaths {
+      contentNodes(first: 500) {
+        nodes {
+          uri
         }
       }
-    `)
+    }
+  `)
+
   return {
-    paths: pages.edges.map(d => ({
-      params: { uri: d.node.uri.split('/').filter(slug => !!slug) },
-    })),
+    paths:
+      contentNodes?.nodes?.map(d => ({
+        params: { uri: d?.uri.split('/').filter(slug => !!slug) },
+      })) ?? [],
     fallback: true,
   }
 }

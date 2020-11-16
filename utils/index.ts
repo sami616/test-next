@@ -1,2 +1,2 @@
-export * from './fetch'
-export * from './setURI'
+export * from '@utils/fetchAPI'
+export * from '@utils/setURI'

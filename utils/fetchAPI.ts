@@ -1,23 +1,19 @@
-type Args = { variables: { [key: string]: any } }
+type Args<Variables> = { variables: Variables }
 
-const API_URL = 'http://www.fl1digital.wpdev2.com/graphql/'
-
-export async function fetchAPI<Data>(
+export async function fetchAPI<Data, Variables = {}>(
   query: string,
-  args?: Args
+  args?: Args<Variables>
 ): Promise<Data> {
   const headers = { 'Content-Type': 'application/json' }
 
-  const res = await fetch(API_URL, {
+  const res = await fetch(process.env.GRAPH_URI!, {
     method: 'POST',
     headers,
     body: JSON.stringify({ query, variables: args?.variables }),
   })
 
   const { data, errors } = await res.json()
+  if (errors) throw new Error(errors)
 
-  if (errors) {
-    throw new Error(errors)
-  }
   return data
 }

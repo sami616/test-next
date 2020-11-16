@@ -1,9 +1,11 @@
 import Head from 'next/head'
 import Error from 'next/error'
 
-export interface NotFoundProps {}
+//x//////////////////////////////////////////////////
+// Custom404
+//x//////////////////////////////////////////////////
 
-export function NotFound() {
+export default function Custom404() {
   return (
     <>
       <Head>
