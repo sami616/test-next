@@ -21,7 +21,8 @@ export interface PageProps extends Pick<NodeProps, 'posts'> {
 export default function Page(props: PageProps): JSX.Element {
   /*
   We can safely assert that `template` will not be undefined here as we know that pages fallback to the `default` template in wp.
-  Im assuming that template is optional due to it not being required on other post types. wpgraphql should really know and make this property required for pages
+  Im assuming that template is optional in the schema due to it not being required on other post types.
+  Shame that wpgraphql doesnt 
   */
   switch (props.node.template!.__typename) {
     case 'HomeTemplate':
