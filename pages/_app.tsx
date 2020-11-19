@@ -1,7 +1,6 @@
 import { AppProps } from 'next/app'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import nprogress from 'nprogress'
-import { useRouter } from 'next/router'
 import { Loader } from '@components'
 import 'nprogress/nprogress.css'
 import '@styles/global.css'

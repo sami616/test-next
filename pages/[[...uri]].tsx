@@ -49,8 +49,19 @@ export const getStaticProps: GetStaticProps<
             ... on Page {
               title
               content
+
               template {
                 __typename
+
+                # Would ideally like to get template specific fields like this here:
+                # Github issue: https://github.com/wp-graphql/wp-graphql/issues/428
+
+                # ... on HomeTemplate {
+                #   homefield
+                # }
+                # ... on BlogTemplate {
+                #   blogfield
+                # }
               }
             }
             ... on Tag {
